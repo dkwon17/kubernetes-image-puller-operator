@@ -15,55 +15,34 @@ package v1alpha1
 import (
 	"context"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	authorizationv1 "k8s.io/api/authorization/v1"
-	authorizationv1Client "k8s.io/client-go/kubernetes/typed/authorization/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
+var webhookLogger = ctrl.Log.WithName("KubernetesImagePuller Webhook")
+
 func (r *KubernetesImagePuller) SetupWebhookWithManager(mgr ctrl.Manager) error {
-
-	authClient, err := authorizationv1Client.NewForConfig(mgr.GetConfig())
-	if err != nil {
-		return err
-	}
-
-	mgr.GetWebhookServer().Register("/validate-che-eclipse-org-v1alpha1-kubernetesimagepuller", &webhook.Admission{Handler: &validationHandler{subjectAccessReviews: authClient.SubjectAccessReviews()}})
+	mgr.GetWebhookServer().Register("/validate-che-eclipse-org-v1alpha1-kubernetesimagepuller", &webhook.Admission{Handler: &validationHandler{k8sClient: mgr.GetClient()}})
 	return nil
 }
 
 // +kubebuilder:webhook:path=/validate-che-eclipse-org-v1alpha1-kubernetesimagepuller,mutating=false,failurePolicy=fail,sideEffects=None,groups=che.eclipse.org,resources=kubernetesimagepullers,verbs=create,versions=v1alpha1,name=vkubernetesimagepuller.kb.io,admissionReviewVersions={v1,v1beta1}
 
 type validationHandler struct {
-	subjectAccessReviews authorizationv1Client.SubjectAccessReviewInterface
+	k8sClient client.Client
 }
 
 func (v *validationHandler) Handle(ctx context.Context, req webhook.AdmissionRequest) webhook.AdmissionResponse {
-	resourceAttributes := &authorizationv1.ResourceAttributes{
-		Namespace: req.Namespace,
-		Group:     "apps",
-		Version:   "*",
-		Verb:      "create",
-		Resource:  "daemonsets",
+	imagePullers := &KubernetesImagePullerList{}
+	err := v.k8sClient.List(ctx, imagePullers, &client.ListOptions{Namespace: req.Namespace})
+	if err != nil {
+		return webhook.Denied(err.Error())
 	}
 
-	subjectAccessReview := &authorizationv1.SubjectAccessReview{
-		Spec: authorizationv1.SubjectAccessReviewSpec{
-			ResourceAttributes: resourceAttributes,
-			User:               req.UserInfo.Username,
-			UID:                req.UserInfo.UID,
-			Groups:             req.UserInfo.Groups,
-		},
+	if len(imagePullers.Items) > 0 {
+		return webhook.Denied("only one KubernetesImagePuller is allowed per namespace")
 	}
-
-	resp, _ := v.subjectAccessReviews.Create(ctx, subjectAccessReview, metav1.CreateOptions{})
-
-	if !resp.Status.Allowed {
-		return webhook.Denied("User \"" + req.UserInfo.Username + "\" not allowed to create daemonsets")
-	}
-
-	return webhook.Allowed("User \"" + req.UserInfo.Username + "\" allowed to create daemonsets")
+	return webhook.Allowed("there are no KubernetesImagePuller resources in this namespace")
 }
