@@ -252,7 +252,13 @@ func (r *KubernetesImagePullerReconciler) Reconcile(ctx context.Context, req ctr
 	// If more than one deployment found in list, delete all deployments not named instance.Spec.DeploymentName
 	if len(deployments.Items) > 1 {
 		for _, deployment := range deployments.Items {
-			if deployment.Name != instance.Spec.DeploymentName {
+
+			if len(deployment.ObjectMeta.OwnerReferences) < 1 {
+				// should never happen
+				continue
+			}
+
+			if deployment.Name != instance.Spec.DeploymentName && deployment.ObjectMeta.OwnerReferences[0].Name == instance.Name {
 				r.Log.Info("Deleting old deployment", "Deployment.Name", deployment.Name)
 				err = r.Delete(context.TODO(), &deployment)
 				if err != nil {
