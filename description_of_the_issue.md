@@ -1,4 +1,4 @@
-# Problem: Cannot have two KIP CRs in the same namespace
+# Problem: Infinite reconciliation if two KIP CRs in the same namespace
 ### Explanation on why this happens:
 If we have these two KIP resources in the same namespace, where `example` was created before `example-2`:
 
