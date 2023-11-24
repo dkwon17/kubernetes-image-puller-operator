@@ -29,9 +29,9 @@ spec:
   imagePullerImage: 'quay.io/eclipse/kubernetes-image-puller:next'
 ```
 
-In this case, we have the same `configMapName`, but differnet configmap data (ie, different images to prepull).
-The reconciler will the update the `k8s-image-puller` configmap, and restart daemonset pods. See code [here](https://github.com/che-incubator/kubernetes-image-puller-operator/blob/eda6cc352391778f928a6d645c136b4c835495c3/controllers/kubernetesimagepuller_controller.go#L156C4-L173C25). 
-The update to the configmap reconciles `example`. But since both `example` is reconciled, the same `configMapName` configmap is updated again, which leads to pods restarting again.
+In this case, we have the same `configMapName`, but different configmap data (ie, different images to prepull).
+When reconciling `example-2`, the operator will update the `k8s-image-puller` configmap, and restart daemonset pods. See code [here](https://github.com/che-incubator/kubernetes-image-puller-operator/blob/eda6cc352391778f928a6d645c136b4c835495c3/controllers/kubernetesimagepuller_controller.go#L156C4-L173C25). 
+The update to the configmap reconciles `example` KIP. But since `example` is reconciled, the same `k8s-image-puller` configmap is updated again, which leads to pods restarting again.
 This loop happens infinitely.
 
 But If `example-2` has a different `configMapName`, `deploymentName` altogether:
