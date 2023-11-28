@@ -158,7 +158,6 @@ var _ = Describe("Create KubernetesImagePuller resource", func() {
 
 	It("Should be able to create a second KubernetesImagePuller resource in a different namespace", func() {
 		secondKip := kip.DeepCopy()
-		secondKip.ObjectMeta.Name = secondKip.ObjectMeta.Name + "-different"
 		secondKip.ObjectMeta.Namespace = secondKip.ObjectMeta.Namespace + "-different"
 		newNamespace := &v1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -168,6 +167,19 @@ var _ = Describe("Create KubernetesImagePuller resource", func() {
 		Expect(k8sClient.Create(ctx, newNamespace)).Should(Succeed())
 		Expect(k8sClient.Create(ctx, kip)).Should(Succeed())
 		Expect(k8sClient.Create(ctx, secondKip)).Should(Succeed())
+
+		podList := &v1.PodList{}
+
+		listOptions := &client.ListOptions{
+			Namespace: "default",
+		}
+
+		k8sClient.List(context.Background(), podList, listOptions)
+
+		// Eventually(func() error {
+
+		// }).Should(Succeed())
+
 		Expect(k8sClient.Delete(ctx, kip)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, secondKip)).Should(Succeed())
 		Expect(k8sClient.Delete(ctx, newNamespace)).Should(Succeed())
