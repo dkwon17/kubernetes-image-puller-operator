@@ -116,7 +116,7 @@ docker-push: ## Push docker image with the manager.
 	$(IMAGE_TOOL) push ${IMG}
 
 manifests: download-controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) crd:crdVersions=v1 rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) crd:crdVersions=v1 rbac:roleName=manager-role paths="./..." output:crd:artifacts:config=config/crd/bases
 
 	# remove yaml delimitier, which makes OLM catalog source image broken.
 	sed -i '/---/d' "$(CHECLUSTER_CRD_PATH)"
