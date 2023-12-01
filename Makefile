@@ -146,12 +146,11 @@ uninstall: manifests download-kustomize ## Uninstall CRDs from the K8s cluster s
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 deploy: manifests download-kustomize kustomize-operator-image gen-deployment ## Deploy controller to the K8s cluster specified in ~/.kube/config.	
-	$(K8S_CLI) apply -f deploy/current/$(PLATFORM)/combined.yaml
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	$(K8S_CLI) apply -f deploy/deployment/$(PLATFORM)/combined.yaml
 
 undeploy: download-kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/default | kubectl delete -f -
-
+	$(K8S_CLI) delete -f deploy/deployment/$(PLATFORM)/combined.yaml
+	
 # Set a new operator image for kustomize
 kustomize-operator-image: download-kustomize
 	cd "$(PROJECT_DIR)/config/manager"
