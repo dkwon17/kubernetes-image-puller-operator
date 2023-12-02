@@ -161,7 +161,7 @@ DEPLOYMENT_DIR=$(PROJECT_DIR)/deploy/deployment
 gen-deployment:
 	DEPLOYMENT_DIR=$(PROJECT_DIR)/deploy/deployment
 	rm -rf $(DEPLOYMENT_DIR)
-	for TARGET_PLATFORM in openshift; do
+	for TARGET_PLATFORM in kubernetes openshift; do
 		PLATFORM_DIR=$(DEPLOYMENT_DIR)/$${TARGET_PLATFORM}
 		OBJECTS_DIR=$${PLATFORM_DIR}/objects
 
