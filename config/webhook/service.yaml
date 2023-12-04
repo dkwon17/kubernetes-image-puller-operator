@@ -2,8 +2,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kubernetes-image-puller-operator-service
-  namespace: system
+  name: service
+  namespace: kubernetes-image-puller-operator
 spec:
   ports:
     - port: 443

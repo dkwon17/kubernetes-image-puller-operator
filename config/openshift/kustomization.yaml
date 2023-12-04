@@ -10,6 +10,8 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+namePrefix: k8s-image-puller-operator-
+
 resources:
   - ../default
 
